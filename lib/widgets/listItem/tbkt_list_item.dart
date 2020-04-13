@@ -63,40 +63,39 @@ class TbktItem extends StatelessWidget {
                   right: 0,
                   child: Row(
                     children: <Widget>[
-                      Container(
-                          margin: EdgeInsets.only(right: 10),
-                          child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                  color: Colors.grey[350],
-                                  borderRadius: BorderRadius.circular(1.5)),
-                              child: Container(
-                                  padding: EdgeInsets.all(3),
-                                  child: Text(
-                                    '初高中同步课堂',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 8,
-                                        height: 1.2),
-                                  )))),
-                      Container(
-                          margin: EdgeInsets.only(right: 10),
-                          child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                  color: Colors.grey[350],
-                                  borderRadius: BorderRadius.circular(1.5)),
-                              child: Container(
-                                  padding: EdgeInsets.all(3),
-                                  child: Text(
-                                    '24分钟',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 8,
-                                        height: 1.2),
-                                  )))),
+                      TbktItemTag(
+                        tag: '初高中同步课堂',
+                      ),
+                      TbktItemTag(
+                        tag: '24分钟',
+                      ),
                     ],
                   ),
                 ),
               ]))),
     );
+  }
+}
+
+// 标签widget
+class TbktItemTag extends StatelessWidget {
+  const TbktItemTag({Key key, @required this.tag}) : super(key: key);
+
+  final String tag;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: EdgeInsets.only(right: 10),
+        child: DecoratedBox(
+            decoration: BoxDecoration(
+                color: Colors.grey[350],
+                borderRadius: BorderRadius.circular(1.5)),
+            child: Container(
+                padding: EdgeInsets.all(3),
+                child: Text(
+                  this.tag,
+                  style:
+                      TextStyle(color: Colors.black, fontSize: 8, height: 1.2),
+                ))));
   }
 }

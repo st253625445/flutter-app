@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import './pages/tbkt_page.dart';
+import './pages/testPage.dart';
 
 void main() => runApp(new MyApp());
 
@@ -8,13 +9,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return new MaterialApp(
         title: 'Flutter Demo',
-        initialRoute: '/',
+        initialRoute: '/text',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         //注册路由表
         routes: {
           "/": (context) => MyHomePage(), //注册首页路由
+          "/text": (context) => TestPage(),
         });
   }
 }

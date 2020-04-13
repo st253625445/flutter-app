@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/tbktListItem.dart';
+import '../widgets/listItem/tbkt_list_item.dart';
 
 class TbktPage extends StatelessWidget {
   const TbktPage({Key key}) : super(key: key);
