@@ -33,17 +33,20 @@ class TbktGridView extends StatefulWidget {
 
 class _TbktGridViewState extends State<TbktGridView> {
   ScrollController _controller = new ScrollController();
-  bool showToTopBtn = false; //是否显示“返回到顶部”按钮
   List _items = []; //保存数据
+  bool showToTopBtn = false; //是否显示“返回到顶部”按钮
+  bool isRefreshing = false; // 是否正在刷新
+  bool isLoadingMore = false; // 加载更多
+  int page = 1; // 请求页面
 
   @override
   void initState() {
     super.initState();
     // 初始化数据
-    _retrieveIcons();
+    _getData();
     //监听滚动事件，打印滚动位置
     _controller.addListener(() {
-      // print(_controller.offset); //打印滚动位置
+      // 显示/隐藏返回顶部
       if (_controller.offset < 200 && showToTopBtn) {
         setState(() {
           showToTopBtn = false;
@@ -52,6 +55,17 @@ class _TbktGridViewState extends State<TbktGridView> {
         setState(() {
           showToTopBtn = true;
         });
+      }
+      // 触底加载更多
+      bool isBottom =
+          _controller.position.pixels == _controller.position.maxScrollExtent;
+      if (!isLoadingMore && isBottom && !isRefreshing) {
+        setState(() {
+          isRefreshing = false;
+          isLoadingMore = true;
+        });
+        page++;
+        _loadMore();
       }
     });
   }
@@ -65,56 +79,105 @@ class _TbktGridViewState extends State<TbktGridView> {
 
   @override
   Widget build(BuildContext context) {
-    return new Stack(children: [
-      GridView.builder(
-        padding: EdgeInsets.all(10),
-        controller: _controller,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, //每行2列
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 3),
-        itemCount: _items.length,
-        itemBuilder: (context, index) {
-          //如果显示到最后一个并且Icon总数小于200时继续获取数据
-          if (index == _items.length - 1 && _items.length < 200) {
-            _retrieveIcons();
-          }
-          return new TbktItem(item: _items[index]);
-        },
-      ),
-      // 返回顶部按钮
-      Positioned(
-          bottom: 10,
-          right: 0,
-          child: Offstage(
-            offstage: !showToTopBtn,
-            child: new FlatButton(
-                color: Colors.blue,
-                highlightColor: Colors.blue[700],
-                colorBrightness: Brightness.dark,
-                splashColor: Colors.grey,
-                child: Icon(Icons.arrow_upward),
-                shape: CircleBorder(),
-                onPressed: () {
-                  //返回到顶部时执行动画
-                  _controller.animateTo(.0,
-                      duration: Duration(milliseconds: 200),
-                      curve: Curves.ease);
-                }),
-          ))
-    ]);
+    return RefreshIndicator(
+        onRefresh: _refresh,
+        child: new Stack(children: [
+          CustomScrollView(controller: _controller, slivers: [
+            SliverPadding(
+                padding: const EdgeInsets.all(8.0),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8.0,
+                    mainAxisSpacing: 8.0,
+                    childAspectRatio: 3.0,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      return new TbktItem(item: _items[index]);
+                    },
+                    childCount: _items.length,
+                  ),
+                )),
+            SliverList(
+              delegate: new SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                //创建列表项
+                return new Container(
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.all(20.0),
+                  child: new SizedBox(
+                    height: 20.0,
+                    width: 20.0,
+                    child: new Opacity(
+                      opacity: isLoadingMore ? 1.0 : 0.0,
+                      child: new CircularProgressIndicator(
+                          backgroundColor: Colors.grey),
+                    ),
+                  ),
+                );
+              }, childCount: 1),
+            ),
+          ]),
+          // 返回顶部按钮
+          Positioned(
+              bottom: 10,
+              right: 0,
+              child: Offstage(
+                offstage: !showToTopBtn,
+                child: new FlatButton(
+                    color: Colors.blue,
+                    highlightColor: Colors.blue[700],
+                    colorBrightness: Brightness.dark,
+                    splashColor: Colors.grey,
+                    child: Icon(Icons.arrow_upward),
+                    shape: CircleBorder(),
+                    onPressed: () {
+                      //返回到顶部时执行动画
+                      _controller.animateTo(.0,
+                          duration: Duration(milliseconds: 200),
+                          curve: Curves.ease);
+                    }),
+              ))
+        ]));
+  }
+
+  Future<Null> _refresh() async {
+    _items.clear();
+    page = 1;
+    setState(() {
+      isRefreshing = false;
+    });
+    _getData();
+    return;
+  }
+
+  Future<Null> _loadMore() async {
+    setState(() {
+      isLoadingMore = true;
+    });
+    //模拟耗时2秒
+    await new Future.delayed(new Duration(seconds: 2));
+    _getData();
   }
 
   //模拟异步获取数据
-  void _retrieveIcons() {
+  void _getData() {
     Future.delayed(Duration(milliseconds: 200)).then((e) {
       setState(() {
         _items.addAll([
           _Item('圣诞节爱好巴巴爸爸是躲不好改吧在咋说的哈事'),
           _Item('22222'),
           _Item('22222'),
+          _Item('22222'),
+          _Item('22222'),
+          _Item('22222'),
+          _Item('22222'),
+          _Item('22222'),
+          _Item('22222'),
         ]);
+        isLoadingMore = false;
+        isRefreshing = false;
       });
     });
   }
